@@ -1,7 +1,6 @@
 #include "lib/mpc.h"
 
-int number_of_nodes(mpc_ast_t* t);
-long eval(mpc_ast_t* t);
+long eval(mpc_ast_t *t);
 
 int main()
 {
@@ -12,15 +11,15 @@ int main()
 
     // defining the parsers
     mpca_lang(MPCA_LANG_DEFAULT,
-    "                                                       \
+              "                                                       \
         number   : /-?[0-9]+/ | <number>+('.'<number>)* ;   \
         operator : '+' | '-' | '*' | '/' | '%' ;            \
         expr     : <number> | '(' <operator> <expr>+ ')' ;  \
         lispy    : /^/ <operator> <expr>+ /$/ ;             \
     ",
-    Number, Operator, Expr, Lispy);
+              Number, Operator, Expr, Lispy);
 
-    char* prompt = "lispy> ";
+    char *prompt = "lispy> ";
     char buffer[2048];
 
     printf("Lispy Interpreter\n");
@@ -29,15 +28,18 @@ int main()
     {
         fputs(prompt, stdout);
         fgets(buffer, 2048, stdin);
-        
+
         mpc_result_t r;
         if (mpc_parse("<stdin>", buffer, Lispy, &r))
         {
             long result = eval(r.output);
             printf("%li\n", result);
             // mpc_ast_print(r.output);
+            printf("%d\n", number_of_nodes(r.output));
             mpc_ast_delete(r.output);
-        } else {
+        }
+        else
+        {
             mpc_err_print(r.error);
             mpc_err_delete(r.error);
         }
@@ -48,40 +50,40 @@ int main()
     return 0;
 }
 
-int number_of_nodes(mpc_ast_t* t)
+long eval_op(long x, char *op, long y)
 {
-    if (t->children_num == 0) { return 1; }
-    if (t->children_num >= 1)
+    if (strcmp(op, "+") == 0)
     {
-        int total = 1;
-        for (int i = 0; i < t->children_num; i++)
-        {
-            total = total + number_of_nodes(t->children[i]);
-        }
-        return total;
+        return x + y;
+    }
+    if (strcmp(op, "-") == 0)
+    {
+        return x - y;
+    }
+    if (strcmp(op, "*") == 0)
+    {
+        return x * y;
+    }
+    if (strcmp(op, "/") == 0)
+    {
+        return x / y;
+    }
+    if (strcmp(op, "%") == 0)
+    {
+        return x % y;
     }
     return 0;
 }
 
-long eval_op(long x, char* op, long y)
+long eval(mpc_ast_t *t)
 {
-    if (strcmp(op, "+") == 0) { return x + y; }
-    if (strcmp(op, "-") == 0) { return x - y; }
-    if (strcmp(op, "*") == 0) { return x * y; }
-    if (strcmp(op, "/") == 0) { return x / y; }
-    if (strcmp(op, "%") == 0) { return x % y; }
-    return 0;
-}
-
-long eval(mpc_ast_t* t)
-{
-    if (strstr(t->tag, "number"))          // if the tag of an ast is number
+    if (strstr(t->tag, "number")) // if the tag of an ast is number
     {
-        return atoi(t->contents);          // convert the str to an int and return it
+        return atoi(t->contents); // convert the str to an int and return it
     }
 
-    char* op = t->children[1]->contents;   // Operator is second child in case of expr
-    long x = eval(t->children[2]);         // Store the third child
+    char *op = t->children[1]->contents; // Operator is second child in case of expr
+    long x = eval(t->children[2]);       // Store the third child
 
     int i = 3;
     while (strstr(t->children[i]->tag, "expr"))
