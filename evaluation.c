@@ -1,4 +1,5 @@
 #include "evaluation.h"
+#include <math.h>
 
 long eval_op(long x, char *op, long y)
 {
@@ -21,6 +22,20 @@ long eval_op(long x, char *op, long y)
     if (strcmp(op, "%") == 0)
     {
         return x % y;
+    }
+    if (strcmp(op, "^") == 0)
+    {
+        long result = 1;
+        while (y > 0)
+        {
+            if (y % 2 == 1)
+            {
+                result *= x;
+            }
+            x *= x;
+            y /= 2;
+        }
+        return result;
     }
     return 0;
 }
