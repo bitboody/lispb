@@ -11,10 +11,12 @@ int main()
     mpc_parser_t *Lispy = mpc_new("lispy");
 
     // defining the parsers
+    // implement min and max
     mpca_lang(MPCA_LANG_DEFAULT,
               "                                             \
         number   : /-?[0-9]+/ | <number>+('.'<number>)* ;   \
-        operator : '+' | '-' | '*' | '/' | '%' | '^' ;      \
+        operator : '+' | '-' | '*' | '/' | '%' | '^' |      \
+                    \"min\" | \"max\" ;                     \
         expr     : <number> | '(' <operator> <expr>+ ')' ;  \
         lispy    : /^/ <operator> <expr>+ /$/ ;             \
     ",

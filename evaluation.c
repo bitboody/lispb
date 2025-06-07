@@ -37,6 +37,14 @@ long eval_op(long x, char *op, long y)
         }
         return result;
     }
+    if (strcmp(op, "min") == 0)
+    {
+        return y ^ ((x ^ y) & -(x < y));
+    }
+    if (strcmp(op, "max") == 0)
+    {
+        return x ^ ((x ^ y) & -(x < y));
+    }
     return 0;
 }
 
