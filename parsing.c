@@ -1,6 +1,26 @@
 #include "lib/mpc.h"
 #include "evaluation.h"
 
+#ifdef _WIN32
+static char buffer[2048];
+
+char *readline(char *prompt)
+{
+    fputs(prompt, stdout);
+    fgets(buffer, 2048, stdin);
+    char *cpy = malloc(strlen(buffer) + 1);
+    strcpy(cpy, buffer);
+    cpy[strlen(cpy) - 1] = '\0';
+    return cpy;
+}
+
+void add_history(char *unused) {}
+
+#else
+#include <editline/readline.h>
+#include <editline/history.h>
+#endif
+
 long eval(mpc_ast_t *t);
 
 int main()
@@ -21,18 +41,16 @@ int main()
     ",
               Number, Operator, Expr, Lispy);
 
-    char *prompt = "lispy> ";
-    char buffer[2048];
-
     printf("Lispy Interpreter\n");
     printf("Press Ctrl+c to Exit\n");
+
     while (1)
     {
-        fputs(prompt, stdout);
-        fgets(buffer, 2048, stdin);
+        char *input = readline("lispy> ");
+        add_history(input);
 
         mpc_result_t r;
-        if (mpc_parse("<stdin>", buffer, Lispy, &r))
+        if (mpc_parse("<stdin>", input, Lispy, &r))
         {
             long result = eval(r.output);
             printf("%li\n", result);
