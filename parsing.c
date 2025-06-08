@@ -1,5 +1,6 @@
 #include "lib/mpc.h"
 #include "evaluation.h"
+#include "error_handling.h"
 
 #ifdef _WIN32
 static char buffer[2048];
@@ -20,8 +21,6 @@ void add_history(char *unused) {}
 #include <editline/readline.h>
 #include <editline/history.h>
 #endif
-
-long eval(mpc_ast_t *t);
 
 int main()
 {
@@ -52,8 +51,8 @@ int main()
         mpc_result_t r;
         if (mpc_parse("<stdin>", input, Lispy, &r))
         {
-            long result = eval(r.output);
-            printf("%li\n", result);
+            lval result = eval(r.output);
+            lval_println(result);
             // mpc_ast_print(r.output);
             mpc_ast_delete(r.output);
         }
