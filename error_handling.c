@@ -9,11 +9,19 @@ lval lval_num(long x)
     return v;
 }
 
+lval lval_double(double x)
+{
+    lval v;
+    v.type = LVAL_DOUBLE;
+    v.data.dnum = x;
+    return v;
+}
+
 lval lval_err(int x)
 {
     lval v;
     v.type = LVAL_ERR;
-    v.data.err = x;
+    v.err = x;
     return v;
 }
 
@@ -24,16 +32,19 @@ void lval_print(lval v)
     case LVAL_NUM:
         printf("%li", v.data.num);
         break;
+    case LVAL_DOUBLE:
+        printf("%lf", v.data.dnum);
+        break;
     case LVAL_ERR:
-        if (v.data.err == LERR_DIV_ZERO)
+        if (v.err == LERR_DIV_ZERO)
         {
             printf("Error: Division by Zero");
         }
-        if (v.data.err == LERR_BAD_OP)
+        if (v.err == LERR_BAD_OP)
         {
             printf("Error: not a valid operator");
         }
-        if (v.data.err == LERR_BAD_NUM)
+        if (v.err == LERR_BAD_NUM)
         {
             printf("Error: Invalid number");
         }

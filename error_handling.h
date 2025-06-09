@@ -7,14 +7,16 @@ typedef struct
     union
     {
         long num;
-        int err;
+        double dnum;
     } data;
+    int err;
 } lval;
 
 /* Possible lval types*/
 enum
 {
     LVAL_NUM,
+    LVAL_DOUBLE,
     LVAL_ERR
 };
 
@@ -27,6 +29,7 @@ enum
 };
 
 lval lval_num(long x);
+lval lval_double(double x);
 lval lval_err(int x);
 void lval_println(lval v);
 

@@ -31,12 +31,12 @@ int main()
 
     // defining the parsers
     mpca_lang(MPCA_LANG_DEFAULT,
-              "                                             \
-        number   : /-?[0-9]+/ | <number>+('.'<number>)* ;   \
-        operator : '+' | '-' | '*' | '/' | '%' | '^' |      \
-                    \"min\" | \"max\" ;                     \
-        expr     : <number> | '(' <operator> <expr>+ ')' ;  \
-        lispy    : /^/ <operator> <expr>+ /$/ ;             \
+              "                                                    \
+        number   : /-?([0-9]+\\.[0-9]*|[0-9]*\\.[0-9]+|[0-9]+)/ ;  \
+        operator : '+' | '-' | '*' | '/' | '%' | '^' |             \
+                    \"min\" | \"max\" ;                            \
+        expr     : <number> | '(' <operator> <expr>+ ')' ;         \
+        lispy    : /^/ <operator> <expr>+ /$/ ;                    \
     ",
               Number, Operator, Expr, Lispy);
 
