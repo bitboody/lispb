@@ -20,21 +20,21 @@ lval eval_op(lval x, char *op, lval y)
         if (is_double)
             return lval_double(xnum + ynum);
         else
-            return lval_num(x.data.num + y.data.num);
+            return lval_long(x.data.num + y.data.num);
     }
     if (strcmp(op, "-") == 0)
     {
         if (is_double)
             return lval_double(xnum - ynum);
         else
-            return lval_num(x.data.num - y.data.num);
+            return lval_long(x.data.num - y.data.num);
     }
     if (strcmp(op, "*") == 0)
     {
         if (is_double)
             return lval_double(xnum * ynum);
         else
-            return lval_num(x.data.num * y.data.num);
+            return lval_long(x.data.num * y.data.num);
     }
     if (strcmp(op, "/") == 0)
     {
@@ -43,7 +43,7 @@ lval eval_op(lval x, char *op, lval y)
         if (is_double)
             return lval_double(xnum / ynum);
         else
-            return lval_num(x.data.num / y.data.num);
+            return lval_long(x.data.num / y.data.num);
     }
     if (strcmp(op, "%") == 0)
     {
@@ -51,7 +51,7 @@ lval eval_op(lval x, char *op, lval y)
             return lval_err(LERR_BAD_OP);
         if (y.data.num == 0)
             return lval_err(LERR_DIV_ZERO);
-        return lval_num(x.data.num % y.data.num);
+        return lval_long(x.data.num % y.data.num);
     }
     if (strcmp(op, "^") == 0)
     {
@@ -70,19 +70,19 @@ lval eval_op(lval x, char *op, lval y)
             x.data.num *= x.data.num;
             y.data.num /= 2;
         }
-        return lval_num(result);
+        return lval_long(result);
     }
     if (strcmp(op, "min") == 0)
     {
         if (is_double)
             return lval_double(fmin(xnum, ynum));
-        return lval_num(y.data.num ^ ((x.data.num ^ y.data.num) & -(x.data.num < y.data.num)));
+        return lval_long(y.data.num ^ ((x.data.num ^ y.data.num) & -(x.data.num < y.data.num)));
     }
     if (strcmp(op, "max") == 0)
     {
         if (is_double)
             return lval_double(fmax(xnum, ynum));
-        return lval_num(x.data.num ^ ((x.data.num ^ y.data.num) & -(x.data.num < y.data.num)));
+        return lval_long(x.data.num ^ ((x.data.num ^ y.data.num) & -(x.data.num < y.data.num)));
     }
     return lval_err(LERR_BAD_OP);
 }
@@ -100,7 +100,7 @@ lval eval(mpc_ast_t *t)
         else
         {
             long x = strtol(t->contents, NULL, 10);
-            return errno != ERANGE ? lval_num(x) : lval_err(LERR_BAD_NUM);
+            return errno != ERANGE ? lval_long(x) : lval_err(LERR_BAD_NUM);
         }
     }
 

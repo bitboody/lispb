@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include "error_handling.h"
 
-lval lval_num(long x)
+lval lval_long(long x)
 {
     lval v;
-    v.type = LVAL_NUM;
+    v.type = LVAL_LONG;
     v.data.num = x;
     return v;
 }
@@ -29,7 +29,7 @@ void lval_print(lval v)
 {
     switch (v.type)
     {
-    case LVAL_NUM:
+    case LVAL_LONG:
         printf("%li", v.data.num);
         break;
     case LVAL_DOUBLE:
