@@ -27,7 +27,7 @@ int main()
     mpc_parser_t *Number = mpc_new("number");
     mpc_parser_t *Operator = mpc_new("operator");
     mpc_parser_t *Expr = mpc_new("expr");
-    mpc_parser_t *Lispy = mpc_new("lispy");
+    mpc_parser_t *LispB = mpc_new("lispb");
 
     // defining the parsers
     mpca_lang(MPCA_LANG_DEFAULT,
@@ -36,20 +36,20 @@ int main()
         operator : '+' | '-' | '*' | '/' | '%' | '^' |             \
                     \"min\" | \"max\" ;                            \
         expr     : <number> | '(' <operator> <expr>+ ')' ;         \
-        lispy    : /^/ <operator> <expr>+ /$/ ;                    \
+        lispb    : /^/ <operator> <expr>+ /$/ ;                    \
     ",
-              Number, Operator, Expr, Lispy);
+              Number, Operator, Expr, LispB);
 
-    printf("Lispy Interpreter\n");
-    printf("Press Ctrl+c to Exit\n");
+    printf("LispB Interpreter\n");
+    printf("Press Ctrl+c to Exit\n\n");
 
     while (1)
     {
-        char *input = readline("lispy> ");
+        char *input = readline("lispb> ");
         add_history(input);
 
         mpc_result_t r;
-        if (mpc_parse("<stdin>", input, Lispy, &r))
+        if (mpc_parse("<stdin>", input, LispB, &r))
         {
             lval result = eval(r.output);
             lval_println(result);
@@ -63,7 +63,7 @@ int main()
         }
     }
 
-    mpc_cleanup(4, Number, Operator, Expr, Lispy);
+    mpc_cleanup(4, Number, Operator, Expr, LispB);
 
     return 0;
 }

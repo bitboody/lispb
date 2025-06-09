@@ -1,5 +1,5 @@
-# lisp-interpreter
-Building a lisp interpreter using buildyourownlisp.com guidance
+# LispB 
+A lisp interpreter using buildyourownlisp.com guidance
 
 Build command:
 ```psh
