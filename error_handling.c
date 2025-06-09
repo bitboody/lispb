@@ -5,16 +5,15 @@ lval lval_num(long x)
 {
     lval v;
     v.type = LVAL_NUM;
-    v.num = x;
+    v.data.num = x;
     return v;
 }
 
-lval lval_err(int x, char *y)
+lval lval_err(int x)
 {
     lval v;
     v.type = LVAL_ERR;
-    v.err = x;
-    v.s = y;
+    v.data.err = x;
     return v;
 }
 
@@ -23,18 +22,18 @@ void lval_print(lval v)
     switch (v.type)
     {
     case LVAL_NUM:
-        printf("%li", v.num);
+        printf("%li", v.data.num);
         break;
     case LVAL_ERR:
-        if (v.err == LERR_DIV_ZERO)
+        if (v.data.err == LERR_DIV_ZERO)
         {
             printf("Error: Division by Zero");
         }
-        if (v.err == LERR_BAD_OP)
+        if (v.data.err == LERR_BAD_OP)
         {
-            printf("Error: %s is not a valid operator", v.s);
+            printf("Error: not a valid operator");
         }
-        if (v.err == LERR_BAD_NUM)
+        if (v.data.err == LERR_BAD_NUM)
         {
             printf("Error: Invalid number");
         }

@@ -1,11 +1,14 @@
-#ifndef ERROR_HANDLING_H 
-#define ERROR_HANDLING_H 
+#ifndef ERROR_HANDLING_H
+#define ERROR_HANDLING_H
+
 typedef struct
 {
     int type;
-    long num;
-    int err;
-    char *s;
+    union
+    {
+        long num;
+        int err;
+    } data;
 } lval;
 
 /* Possible lval types*/
@@ -24,7 +27,7 @@ enum
 };
 
 lval lval_num(long x);
-lval lval_err(int x, char *y);
+lval lval_err(int x);
 void lval_println(lval v);
 
 #endif

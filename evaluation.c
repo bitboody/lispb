@@ -15,47 +15,47 @@ lval eval_op(lval x, char *op, lval y)
 
     if (strcmp(op, "+") == 0)
     {
-        return lval_num(x.num + y.num);
+        return lval_num(x.data.num + y.data.num);
     }
     if (strcmp(op, "-") == 0)
     {
-        return lval_num(x.num - y.num);
+        return lval_num(x.data.num - y.data.num);
     }
     if (strcmp(op, "*") == 0)
     {
-        return lval_num(x.num * y.num);
+        return lval_num(x.data.num * y.data.num);
     }
     if (strcmp(op, "/") == 0)
     {
-        return y.num == 0 ? lval_err(LERR_DIV_ZERO, NULL) : lval_num(x.num / y.num);
+        return y.data.num == 0 ? lval_err(LERR_DIV_ZERO) : lval_num(x.data.num / y.data.num);
     }
     if (strcmp(op, "%") == 0)
     {
-        return lval_num(x.num % y.num);
+        return lval_num(x.data.num % y.data.num);
     }
     if (strcmp(op, "^") == 0)
     {
         long result = 1;
-        while (y.num > 0)
+        while (y.data.num > 0)
         {
-            if (y.num % 2 == 1)
+            if (y.data.num % 2 == 1)
             {
-                result *= x.num;
+                result *= x.data.num;
             }
-            x.num *= x.num;
-            y.num /= 2;
+            x.data.num *= x.data.num;
+            y.data.num /= 2;
         }
         return lval_num(result);
     }
     if (strcmp(op, "min") == 0)
     {
-        return lval_num(y.num ^ ((x.num ^ y.num) & -(x.num < y.num)));
+        return lval_num(y.data.num ^ ((x.data.num ^ y.data.num) & -(x.data.num < y.data.num)));
     }
     if (strcmp(op, "max") == 0)
     {
-        return lval_num(x.num ^ ((x.num ^ y.num) & -(x.num < y.num)));
+        return lval_num(x.data.num ^ ((x.data.num ^ y.data.num) & -(x.data.num < y.data.num)));
     }
-    return lval_err(LERR_BAD_OP, op);
+    return lval_err(LERR_BAD_OP);
 }
 
 lval eval(mpc_ast_t *t)
@@ -64,7 +64,7 @@ lval eval(mpc_ast_t *t)
     {
         errno = 0;
         long x = strtol(t->contents, NULL, 10);
-        return errno != ERANGE ? lval_num(x) : lval_err(LERR_BAD_NUM, NULL);
+        return errno != ERANGE ? lval_num(x) : lval_err(LERR_BAD_NUM);
     }
 
     char *op = t->children[1]->contents; // Operator is second child in case of expr
