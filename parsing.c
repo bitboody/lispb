@@ -1,6 +1,6 @@
 #include "lib/mpc.h"
-#include "evaluation.h"
-#include "error_handling.h"
+#include "include/lval.h"
+#include "include/evaluation.h"
 
 #ifdef _WIN32
 static char buffer[2048];
