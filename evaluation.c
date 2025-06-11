@@ -1,118 +1,193 @@
+#include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include <errno.h>
 #include "evaluation.h"
 #include "error_handling.h"
 
-lval eval_op(lval x, char *op, lval y)
+lval *lval_read_num(mpc_ast_t *t)
 {
-    if (x.type == LVAL_ERR)
-        return x;
-    if (y.type == LVAL_ERR)
-        return y;
-
-    int is_double = (x.type == LVAL_DOUBLE || y.type == LVAL_DOUBLE);
-
-    double xnum = (x.type == LVAL_DOUBLE) ? x.data.dnum : (double)x.data.num;
-    double ynum = (y.type == LVAL_DOUBLE) ? y.data.dnum : (double)y.data.num;
-
-    if (strcmp(op, "+") == 0)
+    errno = 0;
+    if (strchr(t->contents, '.'))
     {
-        if (is_double)
-            return lval_double(xnum + ynum);
-        else
-            return lval_long(x.data.num + y.data.num);
+        double d = strtod(t->contents, NULL);
+        return errno != ERANGE ? lval_double(d) : lval_err("invalid number");
     }
-    if (strcmp(op, "-") == 0)
-    {
-        if (is_double)
-            return lval_double(xnum - ynum);
-        else
-            return lval_long(x.data.num - y.data.num);
-    }
-    if (strcmp(op, "*") == 0)
-    {
-        if (is_double)
-            return lval_double(xnum * ynum);
-        else
-            return lval_long(x.data.num * y.data.num);
-    }
-    if (strcmp(op, "/") == 0)
-    {
-        if (ynum == 0)
-            return lval_err(LERR_DIV_ZERO);
-        if (is_double)
-            return lval_double(xnum / ynum);
-        else
-            return lval_long(x.data.num / y.data.num);
-    }
-    if (strcmp(op, "%") == 0)
-    {
-        if (is_double)
-            return lval_err(LERR_BAD_OP);
-        if (y.data.num == 0)
-            return lval_err(LERR_DIV_ZERO);
-        return lval_long(x.data.num % y.data.num);
-    }
-    if (strcmp(op, "^") == 0)
-    {
-        if (is_double)
-            return lval_double(pow(xnum, ynum));
-        if (y.data.num < 0)
-            return lval_err(LERR_BAD_OP);
-
-        long result = 1;
-        while (y.data.num > 0)
-        {
-            if (y.data.num % 2 == 1)
-            {
-                result *= x.data.num;
-            }
-            x.data.num *= x.data.num;
-            y.data.num /= 2;
-        }
-        return lval_long(result);
-    }
-    if (strcmp(op, "min") == 0)
-    {
-        if (is_double)
-            return lval_double(fmin(xnum, ynum));
-        return lval_long(y.data.num ^ ((x.data.num ^ y.data.num) & -(x.data.num < y.data.num)));
-    }
-    if (strcmp(op, "max") == 0)
-    {
-        if (is_double)
-            return lval_double(fmax(xnum, ynum));
-        return lval_long(x.data.num ^ ((x.data.num ^ y.data.num) & -(x.data.num < y.data.num)));
-    }
-    return lval_err(LERR_BAD_OP);
+    long x = strtol(t->contents, NULL, 10);
+    return errno != ERANGE ? lval_long(x) : lval_err("invalid number");
 }
 
-lval eval(mpc_ast_t *t)
+lval *lval_read(mpc_ast_t *t)
 {
     if (strstr(t->tag, "number"))
+        return lval_read_num(t);
+    if (strstr(t->tag, "symbol"))
+        return lval_sym(t->contents);
+
+    lval *x = NULL;
+    if (strcmp(t->tag, ">") == 0)
+        x = lval_sexpr();
+    if (strstr(t->tag, "sexpr"))
+        x = lval_sexpr();
+
+    for (int i = 0; i < t->children_num; i++)
     {
-        errno = 0;
-        if (strchr(t->contents, '.'))
+        if (strstr(t->children[i]->tag, "comment"))
+            continue;
+        if (strcmp(t->children[i]->contents, "(") == 0)
+            continue;
+        if (strcmp(t->children[i]->contents, ")") == 0)
+            continue;
+        if (strcmp(t->children[i]->tag, "regex") == 0)
+            continue;
+
+        x = lval_add(x, lval_read(t->children[i]));
+    }
+
+    return x;
+}
+
+lval *lval_add(lval *v, lval *x)
+{
+    v->count++;
+    v->cell = realloc(v->cell, sizeof(lval *) * v->count);
+    v->cell[v->count - 1] = x;
+    return v;
+}
+
+lval *lval_eval_sexpr(lval *v)
+{
+    for (int i = 0; i < v->count; i++)
+        v->cell[i] = lval_eval(v->cell[i]);
+
+    for (int i = 0; i < v->count; i++)
+    {
+        if (v->cell[i]->type == LVAL_ERR)
+            return lval_take(v, i);
+    }
+
+    if (v->count == 0)
+        return v;
+
+    if (v->count == 1)
+        return lval_take(v, 0);
+
+    lval *f = lval_pop(v, 0);
+    if (f->type != LVAL_SYM)
+    {
+        lval_del(f);
+        lval_del(v);
+        return lval_err("S-expression does not start with symbol");
+    }
+
+    lval *result = builtin_op(v, f->data.sym);
+    lval_del(f);
+    return result;
+}
+
+lval *lval_eval(lval *v)
+{
+    if (v->type == LVAL_SEXPR)
+        return lval_eval_sexpr(v);
+    return v;
+}
+
+lval *lval_pop(lval *v, int i)
+{
+    lval *x = v->cell[i];
+    memmove(&v->cell[i], &v->cell[i + 1], sizeof(lval *) * (v->count - i - 1));
+
+    v->count--;
+
+    v->cell = realloc(v->cell, sizeof(lval *) * v->count);
+    return x;
+}
+
+lval *lval_take(lval *v, int i)
+{
+    lval *x = lval_pop(v, i);
+    lval_del(v);
+    return x;
+}
+
+lval *builtin_op(lval *a, char *op)
+{
+    for (int i = 0; i < a->count; i++)
+    {
+        if (a->cell[i]->type != LVAL_LONG && a->cell[i]->type != LVAL_DOUBLE)
         {
-            double x = strtod(t->contents, NULL);
-            return errno != ERANGE ? lval_double(x) : lval_err(LERR_BAD_NUM);
+            lval_del(a);
+            return lval_err("Cannot operate on non-number");
+        }
+    }
+
+    lval *x = lval_pop(a, 0);
+
+    if ((strcmp(op, "-") == 0) && a->count == 0)
+    {
+        if (x->type == LVAL_LONG)
+            x->data.num = -x->data.num;
+        else
+            x->data.dnum = -x->data.dnum;
+    }
+
+    while (a->count > 0)
+    {
+        lval *y = lval_pop(a, 0);
+
+        int is_double = (x->type == LVAL_DOUBLE || y->type == LVAL_DOUBLE);
+
+        double xnum = (x->type == LVAL_DOUBLE) ? x->data.dnum : (double)x->data.num;
+        double ynum = (y->type == LVAL_DOUBLE) ? y->data.dnum : (double)y->data.num;
+
+        double res = 0;
+
+        if (strcmp(op, "+") == 0)
+            res = xnum + ynum;
+        else if (strcmp(op, "-") == 0)
+            res = xnum - ynum;
+        else if (strcmp(op, "*") == 0)
+            res = xnum * ynum;
+        else if (strcmp(op, "/") == 0)
+        {
+            if (ynum == 0)
+            {
+                lval_del(x);
+                lval_del(y);
+                return lval_err("Division by Zero");
+            }
+            res = xnum / ynum;
+        }
+        else if (strcmp(op, "%") == 0)
+        {
+            if (is_double)
+            {
+                lval_del(x);
+                lval_del(y);
+                lval_del(a);
+                return lval_err("Modulo operator not supported for double type");
+            }
+            if (y->data.num == 0)
+            {
+                lval_del(x);
+                lval_del(y);
+                lval_del(a);
+                return lval_err("Division by Zero");
+            }
+            res = x->data.num % y->data.num;
+        }
+        if (is_double)
+        {
+            x->type = LVAL_DOUBLE;
+            x->data.dnum = res;
         }
         else
         {
-            long x = strtol(t->contents, NULL, 10);
-            return errno != ERANGE ? lval_long(x) : lval_err(LERR_BAD_NUM);
+            x->type = LVAL_LONG;
+            x->data.num = (long)res;
         }
+        lval_del(y);
     }
-
-    char *op = t->children[1]->contents; // Operator is second child in case of expr
-    lval x = eval(t->children[2]);       // Store the third child
-
-    int i = 3;
-    while (strstr(t->children[i]->tag, "expr"))
-    {
-        x = eval_op(x, op, eval(t->children[i]));
-        i++;
-    }
-
+    lval_del(a);
     return x;
 }

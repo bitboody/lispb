@@ -25,7 +25,8 @@ void add_history(char *unused) {}
 int main()
 {
     mpc_parser_t *Number = mpc_new("number");
-    mpc_parser_t *Operator = mpc_new("operator");
+    mpc_parser_t *Symbol = mpc_new("symbol");
+    mpc_parser_t *Sexpr = mpc_new("sexpr");
     mpc_parser_t *Expr = mpc_new("expr");
     mpc_parser_t *LispB = mpc_new("lispb");
 
@@ -33,12 +34,13 @@ int main()
     mpca_lang(MPCA_LANG_DEFAULT,
               "                                                    \
         number   : /-?([0-9]+\\.[0-9]*|[0-9]*\\.[0-9]+|[0-9]+)/ ;  \
-        operator : '+' | '-' | '*' | '/' | '%' | '^' |             \
+        symbol   : '+' | '-' | '*' | '/' | '%' | '^' |             \
                     \"min\" | \"max\" ;                            \
-        expr     : <number> | '(' <operator> <expr>+ ')' ;         \
-        lispb    : /^/ <operator> <expr>+ /$/ ;                    \
+        sexpr    : '(' <expr>* ')' ;                               \
+        expr     : <number> | <symbol> | <sexpr> ;                 \
+        lispb    : /^/ <expr>* /$/ ;                               \
     ",
-              Number, Operator, Expr, LispB);
+              Number, Symbol, Sexpr, Expr, LispB);
 
     printf("LispB Interpreter\n");
     printf("Press Ctrl+c to Exit\n\n");
@@ -51,8 +53,11 @@ int main()
         mpc_result_t r;
         if (mpc_parse("<stdin>", input, LispB, &r))
         {
-            lval result = eval(r.output);
-            lval_println(result);
+            // lval result = eval(r.output);
+            // lval_println(result);
+            lval *x = lval_eval(lval_read(r.output));
+            lval_println(x);
+            lval_del(x);
             // mpc_ast_print(r.output);
             mpc_ast_delete(r.output);
         }
@@ -63,7 +68,7 @@ int main()
         }
     }
 
-    mpc_cleanup(4, Number, Operator, Expr, LispB);
+    mpc_cleanup(5, Number, Symbol, Sexpr, Expr, LispB);
 
     return 0;
 }
