@@ -3,14 +3,15 @@
 
 #include "../lib/mpc.h"
 
-typedef struct lval {
+typedef struct lval
+{
     int type;
-    char *err;
-
-    union {
+    union
+    {
         long num;
         double dnum;
         char *sym;
+        char *err;
     } data;
 
     int count;
@@ -18,7 +19,8 @@ typedef struct lval {
 } lval;
 
 /* Possible lval types */
-enum {
+enum
+{
     LVAL_LONG,
     LVAL_DOUBLE,
     LVAL_SYM,

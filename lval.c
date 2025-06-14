@@ -30,7 +30,7 @@ void lval_del(lval *v)
     case LVAL_DOUBLE:
         break;
     case LVAL_ERR:
-        free(v->err);
+        free(v->data.err);
         break;
     case LVAL_SYM:
         free(v->data.sym);
@@ -113,7 +113,7 @@ void lval_print(lval *v)
         lval_expr_print(v, '(', ')');
         break;
     case LVAL_ERR:
-        printf("Error: %s", v->err);
+        printf("Error: %s", v->data.err);
         break;
     }
 }
