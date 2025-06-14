@@ -21,15 +21,6 @@ lval *lval_take(lval *v, int i)
     return x;
 }
 
-lval *lval_sym(char *s)
-{
-    lval *v = malloc(sizeof(lval));
-    v->type = LVAL_SYM;
-    v->data.sym = malloc(strlen(s) + 1);
-    strcpy(v->data.sym, s);
-    return v;
-}
-
 void lval_del(lval *v)
 {
     switch (v->type)
@@ -56,6 +47,15 @@ void lval_del(lval *v)
 }
 
 // Constructors
+lval *lval_sym(char *s)
+{
+    lval *v = malloc(sizeof(lval));
+    v->type = LVAL_SYM;
+    v->data.sym = malloc(strlen(s) + 1);
+    strcpy(v->data.sym, s);
+    return v;
+}
+
 lval *lval_sexpr(void)
 {
     lval *v = malloc(sizeof(lval));
