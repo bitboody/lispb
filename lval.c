@@ -35,6 +35,7 @@ void lval_del(lval *v)
     case LVAL_SYM:
         free(v->data.sym);
         break;
+    case LVAL_QEXPR:
     case LVAL_SEXPR:
         for (int i = 0; i < v->count; i++)
         {
@@ -60,6 +61,15 @@ lval *lval_sexpr(void)
 {
     lval *v = malloc(sizeof(lval));
     v->type = LVAL_SEXPR;
+    v->count = 0;
+    v->cell = NULL;
+    return v;
+}
+
+lval *lval_qexpr(void)
+{
+    lval *v = malloc(sizeof(lval));
+    v->type = LVAL_QEXPR;
     v->count = 0;
     v->cell = NULL;
     return v;
@@ -111,6 +121,9 @@ void lval_print(lval *v)
         break;
     case LVAL_SEXPR:
         lval_expr_print(v, '(', ')');
+        break;
+    case LVAL_QEXPR:
+        lval_expr_print(v, '{', '}');
         break;
     case LVAL_ERR:
         printf("Error: %s", v->data.err);

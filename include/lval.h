@@ -25,6 +25,7 @@ enum
     LVAL_DOUBLE,
     LVAL_SYM,
     LVAL_SEXPR,
+    LVAL_QEXPR,
     LVAL_ERR
 };
 
@@ -41,6 +42,7 @@ lval *lval_long(long x);
 lval *lval_double(double x);
 lval *lval_sym(char *s);
 lval *lval_sexpr(void);
+lval *lval_qexpr(void);
 lval *lval_err(char *m);
 
 /* Manipulation */
