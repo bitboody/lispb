@@ -61,14 +61,6 @@ lval *lval_read(mpc_ast_t *t)
     return x;
 }
 
-lval *lval_add(lval *v, lval *x)
-{
-    v->count++;
-    v->cell = realloc(v->cell, sizeof(lval *) * v->count);
-    v->cell[v->count - 1] = x;
-    return v;
-}
-
 lval *lval_eval_sexpr(lval *v)
 {
     for (int i = 0; i < v->count; i++)
@@ -210,6 +202,8 @@ lval *builtin(lval *a, char *func)
         return builtin_tail(a);
     if (strcmp("join", func) == 0)
         return builtin_join(a);
+    if (strcmp("cons", func) == 0)
+        return builtin_cons(a);
     if (strcmp("eval", func) == 0)
         return builtin_eval(a);
     if (strstr("+-/*minmax", func))
@@ -258,6 +252,16 @@ lval *builtin_eval(lval *a)
     lval *x = lval_take(a, 0);
     x->type = LVAL_SEXPR;
     return lval_eval(x);
+}
+
+lval *builtin_cons(lval *a)
+{
+    lval *list = lval_qexpr();
+    list = lval_add(list, a->cell[0]);
+    list = lval_join(list, a->cell[1]);
+
+    lval_del(a);
+    return list;
 }
 
 lval *builtin_join(lval *a)

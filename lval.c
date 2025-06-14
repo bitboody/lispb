@@ -21,6 +21,14 @@ lval *lval_take(lval *v, int i)
     return x;
 }
 
+lval *lval_add(lval *v, lval *x)
+{
+    v->count++;
+    v->cell = realloc(v->cell, sizeof(lval *) * v->count);
+    v->cell[v->count - 1] = x;
+    return v;
+}
+
 void lval_del(lval *v)
 {
     switch (v->type)
