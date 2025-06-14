@@ -93,7 +93,6 @@ lval *lval_eval(lval *v)
     return v;
 }
 
-
 lval *builtin_op(lval *a, char *op)
 {
     for (int i = 0; i < a->count; i++)
@@ -159,6 +158,18 @@ lval *builtin_op(lval *a, char *op)
                 return lval_err("Division by Zero");
             }
             res = x->data.num % y->data.num;
+        }
+        else if (strcmp(op, "min") == 0)
+        {
+            res = xnum;
+            if (xnum > ynum)
+                res = ynum;
+        }
+        else if (strcmp(op, "max") == 0)
+        {
+            res = xnum;
+            if (xnum < ynum)
+                res = ynum;
         }
         if (is_double)
         {
