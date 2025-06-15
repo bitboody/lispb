@@ -17,6 +17,7 @@ lval *builtin_join(lval *a);
 lval *lval_join(lval *x, lval *y);
 lval *builtin_cons(lval *a);
 lval *builtin_len(lval *a);
+lval *builtin_init(lval *a);
 lval *builtin(lval *a, char *func);
 
 #endif

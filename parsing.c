@@ -38,7 +38,7 @@ int main()
         symbol   : '+' | '-' | '*' | '/' | '%' | '^' |             \
                     \"min\" | \"max\" | \"head\" | \"tail\" |      \
                     \"join\" | \"eval\" | \"list\" | \"cons\" |    \
-                    \"len\" ;                                      \
+                    \"len\" | \"init\" ;                           \
         sexpr    : '(' <expr>* ')' ;                               \
         qexpr    : '{' <expr>* '}' ;                               \
         expr     : <number> | <symbol> | <sexpr> | <qexpr> ;       \

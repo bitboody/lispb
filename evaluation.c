@@ -194,6 +194,8 @@ lval *builtin_op(lval *a, char *op)
 
 lval *builtin(lval *a, char *func)
 {
+    if (strcmp("eval", func) == 0)
+        return builtin_eval(a);
     if (strcmp("list", func) == 0)
         return builtin_list(a);
     if (strcmp("head", func) == 0)
@@ -206,8 +208,8 @@ lval *builtin(lval *a, char *func)
         return builtin_cons(a);
     if (strcmp("len", func) == 0)
         return builtin_len(a);
-    if (strcmp("eval", func) == 0)
-        return builtin_eval(a);
+    if (strcmp("init", func) == 0)
+        return builtin_init(a);
     if (strstr("+-/*minmax", func))
         return builtin_op(a, func);
     lval_del(a);
@@ -281,6 +283,16 @@ lval *builtin_len(lval *a)
 
     lval_del(a);
 
+    return x;
+}
+
+lval *builtin_init(lval *a)
+{
+    lval *x = a->cell[0];
+    LASSERT(x, x->count != 0, "Function 'init' passed too little arguments");
+    lval_take(x, x->count - 1);
+    x->type = LVAL_QEXPR;
+    lval_del(a);
     return x;
 }
 
