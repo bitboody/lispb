@@ -37,7 +37,8 @@ int main()
         number   : /-?([0-9]+\\.[0-9]*|[0-9]*\\.[0-9]+|[0-9]+)/ ;  \
         symbol   : '+' | '-' | '*' | '/' | '%' | '^' |             \
                     \"min\" | \"max\" | \"head\" | \"tail\" |      \
-                    \"join\" | \"eval\" | \"list\" | \"cons\" ;    \
+                    \"join\" | \"eval\" | \"list\" | \"cons\" |    \
+                    \"len\" ;                                      \
         sexpr    : '(' <expr>* ')' ;                               \
         qexpr    : '{' <expr>* '}' ;                               \
         expr     : <number> | <symbol> | <sexpr> | <qexpr> ;       \

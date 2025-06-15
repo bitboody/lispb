@@ -204,6 +204,8 @@ lval *builtin(lval *a, char *func)
         return builtin_join(a);
     if (strcmp("cons", func) == 0)
         return builtin_cons(a);
+    if (strcmp("len", func) == 0)
+        return builtin_len(a);
     if (strcmp("eval", func) == 0)
         return builtin_eval(a);
     if (strstr("+-/*minmax", func))
@@ -262,6 +264,24 @@ lval *builtin_cons(lval *a)
 
     lval_del(a);
     return list;
+}
+
+lval *builtin_len(lval *a)
+{
+    lval *x = lval_qexpr();
+
+    long count = 0;
+    for (int i = 0; i < a->count; i++)
+    {
+        count += a->cell[i]->count;
+    }
+
+    x->type = LVAL_LONG;
+    x->data.num = count;
+
+    lval_del(a);
+
+    return x;
 }
 
 lval *builtin_join(lval *a)
