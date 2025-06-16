@@ -80,6 +80,7 @@ lval *lval_add(lval *v, lval *x);
 lval *lval_copy(lval *v);
 void lenv_del(lenv *e);
 lval *lenv_get(lenv *e, lval *k);
+void lenv_put(lenv *e, lval *k, lval *v);
 
 /* IO / Parsing */
 void lval_print(lval *v);
