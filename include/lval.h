@@ -3,6 +3,14 @@
 
 #include "../lib/mpc.h"
 
+struct lval;
+struct lenv;
+typedef struct lval lval;
+typedef struct lenv lenv;
+
+// Lisp Value
+typedef lval *(*lbuiltin)(lenv *, lval *);
+
 typedef struct lval
 {
     int type;
@@ -10,13 +18,21 @@ typedef struct lval
     {
         long num;
         double dnum;
-        char *sym;
         char *err;
+        char *sym;
+        lbuiltin fun;
     } data;
 
     int count;
     struct lval **cell;
 } lval;
+
+struct lenv
+{
+    int count;
+    char **syms;
+    lval **vals;
+};
 
 /* Possible lval types */
 enum
@@ -24,6 +40,7 @@ enum
     LVAL_LONG,
     LVAL_DOUBLE,
     LVAL_SYM,
+    LVAL_FUN,
     LVAL_SEXPR,
     LVAL_QEXPR,
     LVAL_ERR
@@ -41,15 +58,28 @@ enum
 lval *lval_long(long x);
 lval *lval_double(double x);
 lval *lval_sym(char *s);
+lval *lval_fun(lbuiltin func);
 lval *lval_sexpr(void);
 lval *lval_qexpr(void);
 lval *lval_err(char *m);
+lenv *lenv_new(void);
+lval *builtin_add(lenv *e, lval *a);
+lval *builtin_sub(lenv *e, lval *a);
+lval *builtin_mul(lenv *e, lval *a);
+lval *builtin_div(lenv *e, lval *a);
+lval *builtin_mod(lenv *e, lval *a);
+lval *builtin_min(lenv *e, lval *a);
+lval *builtin_max(lenv *e, lval *a);
+void lenv_add_builtins(lenv *e);
 
 /* Manipulation */
 void lval_del(lval *v);
 lval *lval_pop(lval *v, int i);
 lval *lval_take(lval *v, int i);
 lval *lval_add(lval *v, lval *x);
+lval *lval_copy(lval *v);
+void lenv_del(lenv *e);
+lval *lenv_get(lenv *e, lval *k);
 
 /* IO / Parsing */
 void lval_print(lval *v);

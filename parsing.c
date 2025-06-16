@@ -35,10 +35,7 @@ int main()
     mpca_lang(MPCA_LANG_DEFAULT,
               "                                                    \
         number   : /-?([0-9]+\\.[0-9]*|[0-9]*\\.[0-9]+|[0-9]+)/ ;  \
-        symbol   : '+' | '-' | '*' | '/' | '%' | '^' |             \
-                    \"min\" | \"max\" | \"head\" | \"tail\" |      \
-                    \"join\" | \"eval\" | \"list\" | \"cons\" |    \
-                    \"len\" | \"init\" ;                           \
+        symbol   : /[a-zA-Z0-9_+\\-*\\/\\\\=<>!&]+/ ;              \
         sexpr    : '(' <expr>* ')' ;                               \
         qexpr    : '{' <expr>* '}' ;                               \
         expr     : <number> | <symbol> | <sexpr> | <qexpr> ;       \
@@ -49,6 +46,9 @@ int main()
     printf("LispB Interpreter\n");
     printf("Press Ctrl+c to Exit\n\n");
 
+    lenv *e = lenv_new();
+    lenv_add_builtins(e);
+
     while (1)
     {
         char *input = readline("lispb> ");
@@ -57,9 +57,7 @@ int main()
         mpc_result_t r;
         if (mpc_parse("<stdin>", input, LispB, &r))
         {
-            // lval result = eval(r.output);
-            // lval_println(result);
-            lval *x = lval_eval(lval_read(r.output));
+            lval *x = lval_eval(e, lval_read(r.output));
             lval_println(x);
             lval_del(x);
             // mpc_ast_print(r.output);
@@ -70,8 +68,9 @@ int main()
             mpc_err_print(r.error);
             mpc_err_delete(r.error);
         }
+        free(input);
     }
-
+    lenv_del(e);
     mpc_cleanup(6, Number, Symbol, Sexpr, Qexpr, Expr, LispB);
 
     return 0;
