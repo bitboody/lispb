@@ -61,7 +61,7 @@ lval *lval_sym(char *s);
 lval *lval_fun(lbuiltin func);
 lval *lval_sexpr(void);
 lval *lval_qexpr(void);
-lval *lval_err(char *m);
+lval *lval_err(char *fmt, ...);
 lenv *lenv_new(void);
 lval *builtin_add(lenv *e, lval *a);
 lval *builtin_sub(lenv *e, lval *a);
@@ -70,7 +70,6 @@ lval *builtin_div(lenv *e, lval *a);
 lval *builtin_mod(lenv *e, lval *a);
 lval *builtin_min(lenv *e, lval *a);
 lval *builtin_max(lenv *e, lval *a);
-void lenv_add_builtins(lenv *e);
 
 /* Manipulation */
 void lval_del(lval *v);
@@ -81,10 +80,12 @@ lval *lval_copy(lval *v);
 void lenv_del(lenv *e);
 lval *lenv_get(lenv *e, lval *k);
 void lenv_put(lenv *e, lval *k, lval *v);
+void lenv_add_builtins(lenv *e);
 
 /* IO / Parsing */
 void lval_print(lval *v);
 void lval_println(lval *v);
 void lval_expr_print(lval *v, char open, char close);
+char *ltype_name(int t);
 
 #endif

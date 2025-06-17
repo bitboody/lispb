@@ -115,7 +115,7 @@ lval *lenv_get(lenv *e, lval *k)
             return lval_copy(e->vals[i]);
         }
     }
-    return lval_err("unbound symbol");
+    return lval_err("Unbound Symbol '%s'", k->data.sym);
 }
 
 void lenv_put(lenv *e, lval *k, lval *v)
