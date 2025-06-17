@@ -23,6 +23,7 @@ typedef struct lval
         lbuiltin fun;
     } data;
 
+    char *func_name;
     int count;
     struct lval **cell;
 } lval;
@@ -58,7 +59,7 @@ enum
 lval *lval_long(long x);
 lval *lval_double(double x);
 lval *lval_sym(char *s);
-lval *lval_fun(lbuiltin func);
+lval *lval_fun(lbuiltin func, const char *name);
 lval *lval_sexpr(void);
 lval *lval_qexpr(void);
 lval *lval_err(char *fmt, ...);

@@ -49,6 +49,8 @@ lval *lval_copy(lval *v)
         break;
     case LVAL_FUN:
         x->data.fun = v->data.fun;
+        x->func_name = malloc(strlen(v->func_name) + 1);
+        strcpy(x->func_name, v->func_name);
         break;
     case LVAL_LONG:
         x->data.num = v->data.num;
@@ -72,9 +74,11 @@ void lval_del(lval *v)
 {
     switch (v->type)
     {
+    case LVAL_FUN:
+        free(v->func_name);
+        break;
     case LVAL_LONG:
     case LVAL_DOUBLE:
-    case LVAL_FUN:
         break;
     case LVAL_ERR:
         free(v->data.err);
@@ -149,7 +153,7 @@ lval *builtin_max(lenv *e, lval *a) { return builtin_op_internal(e, a, "max"); }
 void lenv_add_builtin(lenv *e, char *name, lbuiltin func)
 {
     lval *k = lval_sym(name);
-    lval *v = lval_fun(func);
+    lval *v = lval_fun(func, name);
     lenv_put(e, k, v);
     lval_del(k);
     lval_del(v);
@@ -165,7 +169,7 @@ void lenv_add_builtins(lenv *e)
     lenv_add_builtin(e, "cons", builtin_cons);
     lenv_add_builtin(e, "init", builtin_init);
     lenv_add_builtin(e, "len", builtin_len);
-    lenv_add_builtin(e, "def",  builtin_def);
+    lenv_add_builtin(e, "def", builtin_def);
 
     // Arithmetic operators
     lenv_add_builtin(e, "+", builtin_add);
@@ -187,11 +191,13 @@ lval *lval_sym(char *s)
     return v;
 }
 
-lval *lval_fun(lbuiltin func)
+lval *lval_fun(lbuiltin func, const char *name)
 {
     lval *v = malloc(sizeof(lval));
     v->type = LVAL_FUN;
     v->data.fun = func;
+    v->func_name = malloc(strlen(name) + 1);
+    strcpy(v->func_name, name);
     return v;
 }
 
@@ -267,7 +273,7 @@ void lval_print(lval *v)
         printf("%s", v->data.sym);
         break;
     case LVAL_FUN:
-        printf("<function>");
+        printf("<%s>", v->func_name);
         break;
     case LVAL_SEXPR:
         lval_expr_print(v, '(', ')');
