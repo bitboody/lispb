@@ -14,13 +14,22 @@ typedef lval *(*lbuiltin)(lenv *, lval *);
 typedef struct lval
 {
     int type;
+    lenv *env;
     union
     {
+        // Basic
         long num;
         double dnum;
         char *err;
         char *sym;
-        lbuiltin fun;
+
+        // Function
+        struct
+        {
+            lbuiltin builtin;
+            lval *formals;
+            lval *body;
+        };
     } data;
 
     char *func_name;
@@ -30,6 +39,7 @@ typedef struct lval
 
 struct lenv
 {
+    lenv *par;
     int count;
     char **syms;
     lval **vals;
@@ -60,6 +70,7 @@ lval *lval_long(long x);
 lval *lval_double(double x);
 lval *lval_sym(char *s);
 lval *lval_fun(lbuiltin func, const char *name);
+lval *lval_lambda(lval *formals, lval *body);
 lval *lval_sexpr(void);
 lval *lval_qexpr(void);
 lval *lval_err(char *fmt, ...);
@@ -78,9 +89,12 @@ lval *lval_pop(lval *v, int i);
 lval *lval_take(lval *v, int i);
 lval *lval_add(lval *v, lval *x);
 lval *lval_copy(lval *v);
+lenv *lenv_copy(lenv *e);
+lval *lval_call(lenv *e, lval *f, lval *a);
 void lenv_del(lenv *e);
 lval *lenv_get(lenv *e, lval *k);
 void lenv_put(lenv *e, lval *k, lval *v);
+void lenv_def(lenv *e, lval *k, lval *v);
 void lenv_add_builtins(lenv *e);
 
 /* IO / Parsing */
