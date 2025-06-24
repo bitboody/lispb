@@ -250,8 +250,82 @@ lval *builtin(lenv *e, lval *a, char *func)
         return builtin_init(e, a);
     if (strstr("+-/*minmax", func))
         return builtin_op_internal(e, a, func);
+    if (strstr("<>", func))
+        return builtin_ord(e, a, func);
+    if (strstr("=", func))
+        return builtin_cmp(e, a, func);
     lval_del(a);
     return lval_err("Unknown function.");
+}
+
+lval *builtin_ord(lenv *e, lval *a, char *op)
+{
+    LASSERT_NUM(op, a, 2);
+    LASSERT(a,
+            (a->cell[0]->type == LVAL_LONG || a->cell[0]->type == LVAL_DOUBLE),
+            "Function '%s' expected number at argument 0. Got %s.",
+            op, ltype_name(a->cell[0]->type));
+
+    LASSERT(a,
+            (a->cell[1]->type == LVAL_LONG || a->cell[1]->type == LVAL_DOUBLE),
+            "Function '%s' expected number at argument 1. Got %s.",
+            op, ltype_name(a->cell[1]->type));
+
+    lval *x = a->cell[0];
+    lval *y = a->cell[1];
+
+    double xnum = (x->type == LVAL_DOUBLE) ? x->data.dnum : (double)x->data.num;
+    double ynum = (y->type == LVAL_DOUBLE) ? y->data.dnum : (double)y->data.num;
+
+    int r;
+    if (strcmp(op, ">") == 0)
+        r = xnum > ynum;
+    if (strcmp(op, "<") == 0)
+        r = xnum < ynum;
+    if (strcmp(op, ">=") == 0)
+        r = xnum >= ynum;
+    if (strcmp(op, "<=") == 0)
+        r = xnum <= ynum;
+
+    lval_del(a);
+    return lval_long(r);
+}
+
+lval *builtin_cmp(lenv *e, lval *a, char *op)
+{
+    LASSERT_NUM(op, a, 2);
+    int r;
+
+    if (strcmp(op, "==") == 0)
+        r = lval_eq(a->cell[0], a->cell[1]);
+    if (strcmp(op, "!=") == 0)
+        r = !lval_eq(a->cell[0], a->cell[1]);
+
+    lval_del(a);
+    return lval_long(r);
+}
+
+lval *builtin_if(lenv *e, lval *a)
+{
+    LASSERT_NUM("if", a, 3);
+    LASSERT(a,
+            a->cell[0]->type == LVAL_LONG || a->cell[0]->type == LVAL_DOUBLE,
+            "Function 'if' expected argument 0 to be number, got %s",
+            ltype_name(a->cell[0]->type));
+    LASSERT_TYPE("if", a, 2, LVAL_QEXPR);
+
+    // Mark both expressions as evaluable
+    lval *x;
+    a->cell[1]->type = LVAL_SEXPR;
+    a->cell[2]->type = LVAL_SEXPR;
+
+    if (a->cell[0]->data.num || a->cell[0]->data.dnum)
+        x = lval_eval(e, lval_pop(a, 1));
+    else
+        x = lval_eval(e, lval_pop(a, 2));
+
+    lval_del(a);
+    return x;
 }
 
 lval *builtin_lambda(lenv *e, lval *a)

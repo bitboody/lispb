@@ -306,6 +306,51 @@ lval *builtin_max(lenv *e, lval *a) { return builtin_op_internal(e, a, "max"); }
 lval *builtin_def(lenv *e, lval *a) { return builtin_var(e, a, "def"); }
 lval *builtin_put(lenv *e, lval *a) { return builtin_var(e, a, "="); }
 
+lval *builtin_gt(lenv *e, lval *a) { return builtin_ord(e, a, ">"); }
+lval *builtin_lt(lenv *e, lval *a) { return builtin_ord(e, a, "<"); }
+lval *builtin_ge(lenv *e, lval *a) { return builtin_ord(e, a, ">="); }
+lval *builtin_le(lenv *e, lval *a) { return builtin_ord(e, a, "<="); }
+
+lval *builtin_eq(lenv *e, lval *a) { return builtin_cmp(e, a, "=="); }
+lval *builtin_ne(lenv *e, lval *a) { return builtin_cmp(e, a, "!="); }
+
+int lval_eq(lval *x, lval *y)
+{
+    double xnum = (x->type == LVAL_DOUBLE) ? x->data.dnum : (double)x->data.num;
+    double ynum = (y->type == LVAL_DOUBLE) ? y->data.dnum : (double)y->data.num;
+
+    if (x->type != y->type)
+        return 0;
+
+    switch (x->type)
+    {
+    case LVAL_LONG:
+    case LVAL_DOUBLE:
+        return xnum == ynum;
+    case LVAL_SYM:
+        return (strcmp(x->data.sym, y->data.sym) == 0);
+    case LVAL_ERR:
+        return (strcmp(x->data.err, y->data.err) == 0);
+    case LVAL_FUN:
+        if (x->data.builtin || y->data.builtin)
+            return x->data.builtin == y->data.builtin;
+        else
+            return lval_eq(x->data.formals, y->data.formals) && lval_eq(x->data.body, y->data.body);
+    case LVAL_QEXPR:
+    case LVAL_SEXPR:
+        if (x->count != y->count)
+            return 0;
+        for (int i = 0; i < x->count; i++)
+        {
+            if (!lval_eq(x->cell[i], y->cell[i]))
+                return 0;
+        }
+        return 1;
+        break;
+    }
+    return 0;
+}
+
 void lenv_add_builtin(lenv *e, char *name, lbuiltin func)
 {
     lval *k = lval_sym(name);
@@ -328,6 +373,13 @@ void lenv_add_builtins(lenv *e)
     lenv_add_builtin(e, "def", builtin_def);
     lenv_add_builtin(e, "=", builtin_put);
     lenv_add_builtin(e, "\\", builtin_lambda);
+    lenv_add_builtin(e, "if", builtin_if);
+    lenv_add_builtin(e, "==", builtin_eq);
+    lenv_add_builtin(e, "!=", builtin_ne);
+    lenv_add_builtin(e, ">", builtin_gt);
+    lenv_add_builtin(e, "<", builtin_lt);
+    lenv_add_builtin(e, ">=", builtin_ge);
+    lenv_add_builtin(e, "<=", builtin_le);
 
     // Arithmetic operators
     lenv_add_builtin(e, "+", builtin_add);

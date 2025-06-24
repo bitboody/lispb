@@ -75,6 +75,8 @@ lval *lval_sexpr(void);
 lval *lval_qexpr(void);
 lval *lval_err(char *fmt, ...);
 lenv *lenv_new(void);
+
+/* Builtins */
 lval *builtin_add(lenv *e, lval *a);
 lval *builtin_sub(lenv *e, lval *a);
 lval *builtin_mul(lenv *e, lval *a);
@@ -82,6 +84,13 @@ lval *builtin_div(lenv *e, lval *a);
 lval *builtin_mod(lenv *e, lval *a);
 lval *builtin_min(lenv *e, lval *a);
 lval *builtin_max(lenv *e, lval *a);
+lval *builtin_gt(lenv *e, lval *a);
+lval *builtin_lt(lenv *e, lval *a);
+lval *builtin_ge(lenv *e, lval *a);
+lval *builtin_le(lenv *e, lval *a);
+int lval_eq(lval *x, lval *y);
+lval *builtin_eq(lenv *e, lval *a);
+lval *builtin_ne(lenv *e, lval *a);
 
 /* Manipulation */
 void lval_del(lval *v);
