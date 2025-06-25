@@ -248,7 +248,7 @@ lval *builtin(lenv *e, lval *a, char *func)
         return builtin_len(e, a);
     if (strcmp("init", func) == 0)
         return builtin_init(e, a);
-    if (strstr("+-/*minmax", func))
+    if (strstr("+-/*", func) || strcmp("min", func) == 0 || strcmp("max", func) == 0)
         return builtin_op_internal(e, a, func);
     if (strstr("<>", func))
         return builtin_ord(e, a, func);
