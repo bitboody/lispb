@@ -33,13 +33,13 @@ int main()
 
     // defining the parsers
     mpca_lang(MPCA_LANG_DEFAULT,
-              "                                                    \
-        number   : /-?([0-9]+\\.[0-9]*|[0-9]*\\.[0-9]+|[0-9]+)/ ;  \
-        symbol   : /[a-zA-Z0-9_+\\-*\\/\\\\=<>!&]+/ ;              \
-        sexpr    : '(' <expr>* ')' ;                               \
-        qexpr    : '{' <expr>* '}' ;                               \
-        expr     : <number> | <symbol> | <sexpr> | <qexpr> ;       \
-        lispb    : /^/ <expr>* /$/ ;                               \
+              "                                                         \
+        number   : /-?([0-9]+\\.[0-9]*|[0-9]*\\.[0-9]+|[0-9]+)/ ;       \
+        symbol   : /[^(){}\\s]+/ ;                                      \
+        sexpr    : '(' <expr>* ')' ;                                    \
+        qexpr    : '{' <expr>* '}' ;                                    \
+        expr     : <number> | <symbol> | <sexpr> | <qexpr> ;            \
+        lispb    : /^/ <expr>* /$/ ;                                    \
     ",
               Number, Symbol, Sexpr, Qexpr, Expr, LispB);
 

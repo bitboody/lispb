@@ -88,9 +88,14 @@ lval *builtin_gt(lenv *e, lval *a);
 lval *builtin_lt(lenv *e, lval *a);
 lval *builtin_ge(lenv *e, lval *a);
 lval *builtin_le(lenv *e, lval *a);
-int lval_eq(lval *x, lval *y);
 lval *builtin_eq(lenv *e, lval *a);
 lval *builtin_ne(lenv *e, lval *a);
+lval *builtin_or(lenv *e, lval *a);
+lval *builtin_and(lenv *e, lval *a);
+
+int lval_eq(lval *x, lval *y);
+int lval_or(lval *x, lval *y);
+int lval_and(lval *x, lval *y);
 
 /* Manipulation */
 void lval_del(lval *v);

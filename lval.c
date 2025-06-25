@@ -313,6 +313,8 @@ lval *builtin_le(lenv *e, lval *a) { return builtin_ord(e, a, "<="); }
 
 lval *builtin_eq(lenv *e, lval *a) { return builtin_cmp(e, a, "=="); }
 lval *builtin_ne(lenv *e, lval *a) { return builtin_cmp(e, a, "!="); }
+lval *builtin_or(lenv *e, lval *a) { return builtin_cmp(e, a, "||"); }
+lval *builtin_and(lenv *e, lval *a) { return builtin_cmp(e, a, "&&"); }
 
 int lval_eq(lval *x, lval *y)
 {
@@ -351,6 +353,70 @@ int lval_eq(lval *x, lval *y)
     return 0;
 }
 
+int lval_or(lval *x, lval *y)
+{
+    if (!x || !y)
+        return 0;
+
+    if (x->type != y->type)
+        return 0;
+
+    double xnum = (x->type == LVAL_DOUBLE) ? x->data.dnum : (double)x->data.num;
+    double ynum = (y->type == LVAL_DOUBLE) ? y->data.dnum : (double)y->data.num;
+
+    switch (x->type)
+    {
+    case LVAL_LONG:
+    case LVAL_DOUBLE:
+        return xnum || ynum;
+    case LVAL_SYM:
+        return strlen(x->data.sym) > 0 || strlen(y->data.sym) > 0;
+    case LVAL_ERR:
+        return strlen(x->data.err) > 0 || strlen(y->data.err);
+    case LVAL_FUN:
+        if (x->data.builtin || y->data.builtin)
+            return 1;
+        else
+            return lval_or(x->data.formals, y->data.formals) || lval_or(x->data.body, y->data.body);
+    case LVAL_QEXPR:
+    case LVAL_SEXPR:
+        return (x->count > 0 || y->count > 0);
+    }
+    return 0;
+}
+
+int lval_and(lval *x, lval *y)
+{
+    if (!x || !y)
+        return 0;
+
+    if (x->type != y->type)
+        return 0;
+
+    double xnum = (x->type == LVAL_DOUBLE) ? x->data.dnum : (double)x->data.num;
+    double ynum = (y->type == LVAL_DOUBLE) ? y->data.dnum : (double)y->data.num;
+
+    switch (x->type)
+    {
+    case LVAL_LONG:
+    case LVAL_DOUBLE:
+        return xnum && ynum;
+    case LVAL_SYM:
+        return strlen(x->data.sym) > 0 && strlen(y->data.sym) > 0;
+    case LVAL_ERR:
+        return strlen(x->data.err) > 0 && strlen(y->data.err) > 0;
+    case LVAL_FUN:
+        if (x->data.builtin && y->data.builtin)
+            return 1;
+        else
+            return lval_and(x->data.formals, y->data.formals) && lval_and(x->data.body, y->data.body);
+    case LVAL_QEXPR:
+    case LVAL_SEXPR:
+        return (x->count > 0 && y->count > 0);
+    }
+    return 0;
+}
+
 void lenv_add_builtin(lenv *e, char *name, lbuiltin func)
 {
     lval *k = lval_sym(name);
@@ -380,6 +446,8 @@ void lenv_add_builtins(lenv *e)
     lenv_add_builtin(e, "<", builtin_lt);
     lenv_add_builtin(e, ">=", builtin_ge);
     lenv_add_builtin(e, "<=", builtin_le);
+    lenv_add_builtin(e, "||", builtin_or);
+    lenv_add_builtin(e, "&&", builtin_and);
 
     // Arithmetic operators
     lenv_add_builtin(e, "+", builtin_add);
