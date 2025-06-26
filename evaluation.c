@@ -252,7 +252,7 @@ lval *builtin(lenv *e, lval *a, char *func)
         return builtin_op_internal(e, a, func);
     if (strstr("<>", func))
         return builtin_ord(e, a, func);
-    if (strcmp("==", func) == 0 || strcmp("!=", func) == 0 || strcmp("||", func) == 0 || strcmp("&&", func) == 0)
+    if (strcmp("==", func) == 0 || strcmp("||", func) == 0 || strcmp("&&", func) == 0 || strstr("!", func))
         return builtin_cmp(e, a, func);
     lval_del(a);
     return lval_err("Unknown function.");
@@ -293,17 +293,36 @@ lval *builtin_ord(lenv *e, lval *a, char *op)
 
 lval *builtin_cmp(lenv *e, lval *a, char *op)
 {
-    LASSERT_NUM(op, a, 2);
     int r;
 
     if (strcmp(op, "==") == 0)
+    {
+        LASSERT_NUM(op, a, 2);
         r = lval_eq(a->cell[0], a->cell[1]);
-    if (strcmp(op, "!=") == 0)
-        r = !lval_eq(a->cell[0], a->cell[1]);
+    }
     if (strcmp(op, "||") == 0)
+    {
+        LASSERT_NUM(op, a, 2);
         r = lval_or(a->cell[0], a->cell[1]);
+    }
     if (strcmp(op, "&&") == 0)
+    {
+        LASSERT_NUM(op, a, 2);
         r = lval_and(a->cell[0], a->cell[1]);
+    }
+    if (strstr(op, "!"))
+    {
+        if (strcmp(op, "!=") == 0)
+        {
+            LASSERT_NUM(op, a, 2);
+            r = !lval_eq(a->cell[0], a->cell[1]);
+        }
+        else
+        {
+            LASSERT_NUM(op, a, 1);
+            r = !lval_is_true(a->cell[0]);
+        }
+    }
 
     lval_del(a);
     return lval_long(r);

@@ -315,6 +315,7 @@ lval *builtin_eq(lenv *e, lval *a) { return builtin_cmp(e, a, "=="); }
 lval *builtin_ne(lenv *e, lval *a) { return builtin_cmp(e, a, "!="); }
 lval *builtin_or(lenv *e, lval *a) { return builtin_cmp(e, a, "||"); }
 lval *builtin_and(lenv *e, lval *a) { return builtin_cmp(e, a, "&&"); }
+lval *builtin_not(lenv *e, lval *a) { return builtin_cmp(e, a, "!"); }
 
 int lval_eq(lval *x, lval *y)
 {
@@ -448,6 +449,7 @@ void lenv_add_builtins(lenv *e)
     lenv_add_builtin(e, "<=", builtin_le);
     lenv_add_builtin(e, "||", builtin_or);
     lenv_add_builtin(e, "&&", builtin_and);
+    lenv_add_builtin(e, "!", builtin_not);
 
     // Arithmetic operators
     lenv_add_builtin(e, "+", builtin_add);
@@ -594,4 +596,24 @@ void lval_println(lval *v)
 {
     lval_print(v);
     putchar('\n');
+}
+
+int lval_is_true(lval *v)
+{
+    switch (v->type)
+    {
+    case LVAL_LONG:
+        return v->data.num != 0;
+    case LVAL_DOUBLE:
+        return v->data.dnum != 0.0;
+    case LVAL_ERR:
+        return strlen(v->data.err) > 0;
+    case LVAL_SYM:
+        return strlen(v->data.sym) > 0;
+    case LVAL_QEXPR:
+    case LVAL_SEXPR:
+        return v->count > 0;
+    default:
+        return 1;
+    }
 }

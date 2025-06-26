@@ -92,6 +92,7 @@ lval *builtin_eq(lenv *e, lval *a);
 lval *builtin_ne(lenv *e, lval *a);
 lval *builtin_or(lenv *e, lval *a);
 lval *builtin_and(lenv *e, lval *a);
+lval *builtin_not(lenv *e, lval *a);
 
 int lval_eq(lval *x, lval *y);
 int lval_or(lval *x, lval *y);
@@ -116,5 +117,6 @@ void lval_print(lval *v);
 void lval_println(lval *v);
 void lval_expr_print(lval *v, char open, char close);
 char *ltype_name(int t);
+int lval_is_true(lval *v);
 
 #endif
