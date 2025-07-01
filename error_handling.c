@@ -39,6 +39,8 @@ char *ltype_name(int t)
         return "Error";
     case LVAL_SYM:
         return "Symbol";
+    case LVAL_STR:
+        return "String";
     case LVAL_SEXPR:
         return "S-Expression";
     case LVAL_QEXPR:

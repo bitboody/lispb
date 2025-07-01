@@ -6,35 +6,6 @@
 #include "include/lval.h"
 #include "include/evaluation.h"
 
-#define LASSERT(args, cond, fmt, ...)             \
-    if (!(cond))                                  \
-    {                                             \
-        lval *err = lval_err(fmt, ##__VA_ARGS__); \
-        lval_del(args);                           \
-        return err;                               \
-    }
-
-#define LASSERT_NUM(func, args, expected)                                           \
-    if ((args)->count != (expected))                                                \
-    {                                                                               \
-        lval *err = lval_err(                                                       \
-            "Function '%s' passed wrong number of arguments. Got %i, Expected %i.", \
-            (func), (args)->count, (expected));                                     \
-        lval_del(args);                                                             \
-        return err;                                                                 \
-    }
-
-#define LASSERT_TYPE(func, args, index, expected)                                        \
-    if ((args)->cell[(index)]->type != (expected))                                       \
-    {                                                                                    \
-        lval *err = lval_err(                                                            \
-            "Function '%s' passed incorrect type for argument %i. Got %s, Expected %s.", \
-            (func), (index),                                                             \
-            ltype_name((args)->cell[(index)]->type), ltype_name((expected)));            \
-        lval_del(args);                                                                  \
-        return err;                                                                      \
-    }
-
 lval *lval_read_num(mpc_ast_t *t)
 {
     errno = 0;
@@ -47,12 +18,25 @@ lval *lval_read_num(mpc_ast_t *t)
     return errno != ERANGE ? lval_long(x) : lval_err("Invalid number.");
 }
 
+lval *lval_read_str(mpc_ast_t *t)
+{
+    t->contents[strlen(t->contents) - 1] = '\0';
+    char *unescaped = malloc(strlen(t->contents + 1) + 1);
+    strcpy(unescaped, t->contents + 1);
+    unescaped = mpcf_unescape(unescaped);
+    lval *str = lval_str(unescaped);
+    free(unescaped);
+    return str;
+}
+
 lval *lval_read(mpc_ast_t *t)
 {
     if (strstr(t->tag, "number"))
         return lval_read_num(t);
     if (strstr(t->tag, "symbol"))
         return lval_sym(t->contents);
+    if (strstr(t->tag, "string"))
+        return lval_read_str(t);
 
     lval *x = NULL;
     if (strcmp(t->tag, ">") == 0)
@@ -181,7 +165,7 @@ lval *builtin_op_internal(lenv *e, lval *a, const char *op)
             res = xnum / ynum;
         }
         else if (strcmp(op, "^") == 0)
-           res = pow(xnum, ynum);
+            res = pow(xnum, ynum);
         else if (strcmp(op, "%") == 0)
         {
             if (is_double)
@@ -344,7 +328,14 @@ lval *builtin_if(lenv *e, lval *a)
     a->cell[1]->type = LVAL_SEXPR;
     a->cell[2]->type = LVAL_SEXPR;
 
-    if (a->cell[0]->data.num || a->cell[0]->data.dnum)
+    int truth_val = 0;
+
+    if (a->cell[0]->type == LVAL_LONG)
+        truth_val = a->cell[0]->data.num != 0;
+    else if (a->cell[0]->type == LVAL_DOUBLE)
+        truth_val = a->cell[0]->data.dnum != 0.0;
+
+    if (truth_val)
         x = lval_eval(e, lval_pop(a, 1));
     else
         x = lval_eval(e, lval_pop(a, 2));
@@ -506,6 +497,31 @@ lval *builtin_join(lenv *e, lval *a)
 
     lval_del(a);
     return x;
+}
+
+lval *builtin_print(lenv *e, lval *a)
+{
+    for (int i = 0; i < a->count; i++)
+    {
+        lval_print(a->cell[i]);
+        putchar(' ');
+    }
+
+    putchar('\n');
+    lval_del(a);
+
+    return lval_sexpr();
+}
+
+lval *builtin_error(lenv *e, lval *a)
+{
+    LASSERT_NUM("error", a, 1);
+    LASSERT_TYPE("error", a, 0, LVAL_STR);
+
+    lval *err = lval_err(a->cell[0]->data.str);
+
+    lval_del(a);
+    return err;
 }
 
 lval *lval_join(lenv *e, lval *x, lval *y)

@@ -73,6 +73,10 @@ lval *lval_copy(lval *v)
         x->data.sym = malloc(strlen(v->data.sym) + 1);
         strcpy(x->data.sym, v->data.sym);
         break;
+    case LVAL_STR:
+        x->data.str = malloc(strlen(v->data.str) + 1);
+        strcpy(x->data.str, v->data.str);
+        break;
     case LVAL_ERR:
         x->data.err = malloc(strlen(v->data.err) + 1);
         strcpy(x->data.err, v->data.err);
@@ -228,6 +232,9 @@ void lval_del(lval *v)
     case LVAL_SYM:
         free(v->data.sym);
         break;
+    case LVAL_STR:
+        free(v->data.str);
+        break;
     case LVAL_QEXPR:
     case LVAL_SEXPR:
         for (int i = 0; i < v->count; i++)
@@ -333,6 +340,8 @@ int lval_eq(lval *x, lval *y)
         return xnum == ynum;
     case LVAL_SYM:
         return (strcmp(x->data.sym, y->data.sym) == 0);
+    case LVAL_STR:
+        return (strcmp(x->data.str, y->data.str) == 0);
     case LVAL_ERR:
         return (strcmp(x->data.err, y->data.err) == 0);
     case LVAL_FUN:
@@ -439,6 +448,9 @@ void lenv_add_builtins(lenv *e)
     lenv_add_builtin(e, "init", builtin_init);
     lenv_add_builtin(e, "len", builtin_len);
     lenv_add_builtin(e, "def", builtin_def);
+    lenv_add_builtin(e, "load", builtin_load);
+    lenv_add_builtin(e, "error", builtin_error);
+    lenv_add_builtin(e, "print", builtin_print);
     lenv_add_builtin(e, "=", builtin_put);
     lenv_add_builtin(e, "\\", builtin_lambda);
     lenv_add_builtin(e, "if", builtin_if);
@@ -471,6 +483,15 @@ lval *lval_sym(char *s)
     v->type = LVAL_SYM;
     v->data.sym = malloc(strlen(s) + 1);
     strcpy(v->data.sym, s);
+    return v;
+}
+
+lval *lval_str(char *s)
+{
+    lval *v = malloc(sizeof(lval));
+    v->type = LVAL_STR;
+    v->data.str = malloc(strlen(s) + 1);
+    strcpy(v->data.str, s);
     return v;
 }
 
@@ -543,6 +564,15 @@ lenv *lenv_new(void)
     return e;
 }
 
+void lval_print_str(lval *v)
+{
+    char *escaped = malloc(strlen(v->data.str) + 1);
+    strcpy(escaped, v->data.str);
+    escaped = mpcf_escape(escaped);
+    printf("\"%s\"", escaped);
+    free(escaped);
+}
+
 void lval_expr_print(lval *v, char open, char close)
 {
     putchar(open);
@@ -570,6 +600,9 @@ void lval_print(lval *v)
         break;
     case LVAL_SYM:
         printf("%s", v->data.sym);
+        break;
+    case LVAL_STR:
+        lval_print_str(v);
         break;
     case LVAL_FUN:
         if (v->data.builtin)
@@ -611,6 +644,8 @@ int lval_is_true(lval *v)
         return v->data.dnum != 0.0;
     case LVAL_ERR:
         return strlen(v->data.err) > 0;
+    case LVAL_STR:
+        return strlen(v->data.str) > 0;
     case LVAL_SYM:
         return strlen(v->data.sym) > 0;
     case LVAL_QEXPR:

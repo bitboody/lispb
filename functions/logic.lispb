@@ -1,0 +1,3 @@
+(def {bool} (\ {x} {
+  if (x) {"True"} {"False"}
+}))

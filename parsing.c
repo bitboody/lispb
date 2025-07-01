@@ -22,33 +22,60 @@ void add_history(char *unused) {}
 #include <editline/history.h>
 #endif
 
-int main()
+mpc_parser_t *Number;
+mpc_parser_t *Symbol;
+mpc_parser_t *String;
+mpc_parser_t *Comment;
+mpc_parser_t *Sexpr;
+mpc_parser_t *Qexpr;
+mpc_parser_t *Expr;
+mpc_parser_t *LispB;
+
+int main(int argc, char *argv[])
 {
-    mpc_parser_t *Number = mpc_new("number");
-    mpc_parser_t *Symbol = mpc_new("symbol");
-    mpc_parser_t *Sexpr = mpc_new("sexpr");
-    mpc_parser_t *Qexpr = mpc_new("qexpr");
-    mpc_parser_t *Expr = mpc_new("expr");
-    mpc_parser_t *LispB = mpc_new("lispb");
+    Number = mpc_new("number");
+    Symbol = mpc_new("symbol");
+    String = mpc_new("string");
+    Comment = mpc_new("comment");
+    Sexpr = mpc_new("sexpr");
+    Qexpr = mpc_new("qexpr");
+    Expr = mpc_new("expr");
+    LispB = mpc_new("lispb");
 
     // defining the parsers
     mpca_lang(MPCA_LANG_DEFAULT,
               "                                                         \
         number   : /-?([0-9]+\\.[0-9]*|[0-9]*\\.[0-9]+|[0-9]+)/ ;       \
-        symbol   : /[^(){}\\s]+/ ;                                      \
+        symbol   : /[a-zA-Z0-9_+\\-*\\/\\\\^=<>!&]+/ ;                   \
+        string   : /\"(\\\\.|[^\"])*\"/ ;                               \
+        comment  : /;[^\\r\\n]*/ ;                                      \
         sexpr    : '(' <expr>* ')' ;                                    \
         qexpr    : '{' <expr>* '}' ;                                    \
-        expr     : <number> | <symbol> | <sexpr> | <qexpr> ;            \
+        expr     : <number> | <symbol> | <string>                       \
+                 | <comment> | <sexpr> | <qexpr> ;                                  \
         lispb    : /^/ <expr>* /$/ ;                                    \
     ",
-              Number, Symbol, Sexpr, Qexpr, Expr, LispB);
-
-    printf("LispB Interpreter\n");
-    printf("Press Ctrl+c to Exit\n\n");
+              Number, Symbol, String, Comment, Sexpr, Qexpr, Expr, LispB);
 
     lenv *e = lenv_new();
     lenv_add_builtins(e);
 
+    if (argc >= 2)
+    {
+        for (int i = 1; i < argc; i++)
+        {
+            lval *args = lval_add(lval_sexpr(), lval_str(argv[i]));
+
+            lval *x = builtin_load(e, args);
+
+            if (x->type == LVAL_ERR)
+                lval_println(x);
+            lval_del(x);
+        }
+    }
+
+    printf("LispB Interpreter\n");
+    printf("Press Ctrl+c to Exit\n\n");
     while (1)
     {
         char *input = readline("lispb> ");
@@ -71,7 +98,47 @@ int main()
         free(input);
     }
     lenv_del(e);
-    mpc_cleanup(6, Number, Symbol, Sexpr, Qexpr, Expr, LispB);
+    mpc_cleanup(8, Number, Symbol, String, Comment, Sexpr, Qexpr, Expr, LispB);
 
     return 0;
+}
+
+lval *builtin_load(lenv *e, lval *a)
+{
+    LASSERT_NUM("load", a, 1);
+    LASSERT_TYPE("load", a, 0, LVAL_STR);
+
+    mpc_result_t r;
+    if (mpc_parse_contents(a->cell[0]->data.str, LispB, &r))
+    {
+
+        lval *expr = lval_read(r.output);
+        mpc_ast_delete(r.output);
+
+        while (expr->count)
+        {
+            lval *x = lval_eval(e, lval_pop(expr, 0));
+            if (x->type == LVAL_ERR)
+            {
+                lval_println(x);
+            }
+            lval_del(x);
+        }
+
+        lval_del(expr);
+        lval_del(a);
+
+        return lval_sexpr();
+    }
+    else
+    {
+        char *err_msg = mpc_err_string(r.error);
+        mpc_err_delete(r.error);
+
+        lval *err = lval_err("Could not load Library %s", err_msg);
+        free(err_msg);
+        lval_del(a);
+
+        return err;
+    }
 }

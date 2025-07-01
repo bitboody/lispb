@@ -22,6 +22,7 @@ typedef struct lval
         double dnum;
         char *err;
         char *sym;
+        char *str;
 
         // Function
         struct
@@ -51,6 +52,7 @@ enum
     LVAL_LONG,
     LVAL_DOUBLE,
     LVAL_SYM,
+    LVAL_STR,
     LVAL_FUN,
     LVAL_SEXPR,
     LVAL_QEXPR,
@@ -69,6 +71,7 @@ enum
 lval *lval_long(long x);
 lval *lval_double(double x);
 lval *lval_sym(char *s);
+lval *lval_str(char *s);
 lval *lval_fun(lbuiltin func, const char *name);
 lval *lval_lambda(lval *formals, lval *body);
 lval *lval_sexpr(void);
@@ -116,6 +119,7 @@ void lenv_add_builtins(lenv *e);
 void lval_print(lval *v);
 void lval_println(lval *v);
 void lval_expr_print(lval *v, char open, char close);
+void lval_print_str(lval *v);
 char *ltype_name(int t);
 int lval_is_true(lval *v);
 
