@@ -299,6 +299,7 @@ lval *builtin_add(lenv *e, lval *a) { return builtin_op_internal(e, a, "+"); }
 lval *builtin_sub(lenv *e, lval *a) { return builtin_op_internal(e, a, "-"); }
 lval *builtin_mul(lenv *e, lval *a) { return builtin_op_internal(e, a, "*"); }
 lval *builtin_div(lenv *e, lval *a) { return builtin_op_internal(e, a, "/"); }
+lval *builtin_pow(lenv *e, lval *a) { return builtin_op_internal(e, a, "^"); }
 lval *builtin_mod(lenv *e, lval *a) { return builtin_op_internal(e, a, "%"); }
 lval *builtin_min(lenv *e, lval *a) { return builtin_op_internal(e, a, "min"); }
 lval *builtin_max(lenv *e, lval *a) { return builtin_op_internal(e, a, "max"); }
@@ -456,6 +457,8 @@ void lenv_add_builtins(lenv *e)
     lenv_add_builtin(e, "-", builtin_sub);
     lenv_add_builtin(e, "*", builtin_mul);
     lenv_add_builtin(e, "/", builtin_div);
+    lenv_add_builtin(e, "^", builtin_pow);
+    lenv_add_builtin(e, "^", builtin_pow);
     lenv_add_builtin(e, "%", builtin_mod);
     lenv_add_builtin(e, "min", builtin_min);
     lenv_add_builtin(e, "max", builtin_max);

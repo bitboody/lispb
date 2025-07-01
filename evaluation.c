@@ -180,6 +180,8 @@ lval *builtin_op_internal(lenv *e, lval *a, const char *op)
             }
             res = xnum / ynum;
         }
+        else if (strcmp(op, "^") == 0)
+           res = pow(xnum, ynum);
         else if (strcmp(op, "%") == 0)
         {
             if (is_double)
@@ -248,7 +250,7 @@ lval *builtin(lenv *e, lval *a, char *func)
         return builtin_len(e, a);
     if (strcmp("init", func) == 0)
         return builtin_init(e, a);
-    if (strstr("+-/*", func) || strcmp("min", func) == 0 || strcmp("max", func) == 0)
+    if (strstr("+-/*^", func) || strcmp("min", func) == 0 || strcmp("max", func) == 0)
         return builtin_op_internal(e, a, func);
     if (strstr("<>", func))
         return builtin_ord(e, a, func);
