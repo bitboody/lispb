@@ -275,6 +275,15 @@ lval *lenv_get(lenv *e, lval *k)
         return lval_err("Unbound Symbol '%s'", k->data.sym);
 }
 
+lval *lval_join(lenv *e, lval *x, lval *y)
+{
+    while (y->count)
+        x = lval_add(x, lval_pop(y, 0));
+
+    lval_del(y);
+    return x;
+}
+
 void lenv_put(lenv *e, lval *k, lval *v)
 {
     for (int i = 0; i < e->count; i++)

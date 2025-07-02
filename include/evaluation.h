@@ -53,7 +53,6 @@ lval *builtin_len(lenv *e, lval *a);
 lval *builtin_load(lenv *e, lval *a);
 lval *builtin_print(lenv *e, lval *a);
 lval *builtin_error(lenv *e, lval *a);
-lval *lval_join(lenv *e, lval *x, lval *y);
 lval *builtin_def(lenv *e, lval *a);
 lval *builtin_var(lenv *e, lval *a, char *func);
 lval *builtin_ord(lenv *e, lval *a, char *op);
