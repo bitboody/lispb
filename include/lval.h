@@ -114,6 +114,7 @@ lval *lenv_get(lenv *e, lval *k);
 void lenv_put(lenv *e, lval *k, lval *v);
 void lenv_def(lenv *e, lval *k, lval *v);
 lval *lval_join(lenv *e, lval *x, lval *y);
+lval *lval_join_string(lenv *e, lval *a);
 void lenv_add_builtins(lenv *e);
 
 /* IO / Parsing */

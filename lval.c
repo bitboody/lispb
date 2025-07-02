@@ -284,6 +284,69 @@ lval *lval_join(lenv *e, lval *x, lval *y)
     return x;
 }
 
+lval *lval_join_string(lenv *e, lval *a) {
+    // Estimate total length
+    size_t total_len = 1; // for null terminator
+
+    for (int i = 0; i < a->count; i++) {
+        lval *v = a->cell[i];
+        switch (v->type) {
+            case LVAL_STR:
+                total_len += strlen(v->data.str);
+                break;
+            case LVAL_LONG:
+                total_len += 21; // Enough for a 64-bit number
+                break;
+            case LVAL_DOUBLE:
+                total_len += 32; // Enough for double
+                break;
+            case LVAL_SYM:
+                total_len += strlen(v->data.sym);
+                break;
+            case LVAL_ERR:
+                total_len += strlen(v->data.err);
+                break;
+            default:
+                break;
+        }
+    }
+
+    char *buffer = malloc(total_len);
+    buffer[0] = '\0';
+
+    for (int i = 0; i < a->count; i++) {
+        lval *v = a->cell[i];
+        char temp[64] = {0}; // temporary string to hold number/symbol
+
+        switch (v->type) {
+            case LVAL_STR:
+                strcat(buffer, v->data.str);
+                break;
+            case LVAL_LONG:
+                snprintf(temp, sizeof(temp), "%li", v->data.num);
+                strcat(buffer, temp);
+                break;
+            case LVAL_DOUBLE:
+                snprintf(temp, sizeof(temp), "%lf", v->data.dnum);
+                strcat(buffer, temp);
+                break;
+            case LVAL_SYM:
+                strcat(buffer, v->data.sym);
+                break;
+            case LVAL_ERR:
+                strcat(buffer, v->data.err);
+                break;
+            default:
+                break;
+        }
+    }
+
+    lval *r = lval_str(buffer);
+    free(buffer);
+    lval_del(a);
+    return r;
+}
+
 void lenv_put(lenv *e, lval *k, lval *v)
 {
     for (int i = 0; i < e->count; i++)

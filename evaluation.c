@@ -526,15 +526,26 @@ lval *builtin_init(lenv *e, lval *a)
 
 lval *builtin_join(lenv *e, lval *a)
 {
+    int has_string = 0;
+    for (int i = 0; i < a->count; i++)
+    {
+        if (a->cell[i]->type == LVAL_STR)
+        {
+            has_string = 1;
+            break;
+        }
+    }
+
+    if (has_string)
+        return lval_join_string(e, a);
+
     for (int i = 0; i < a->count; i++)
         LASSERT(a, a->cell[i]->type == LVAL_QEXPR, "Function 'join' passed incorrect type. Got %s, Expected %s.", ltype_name(a->cell[i]->type), ltype_name(LVAL_QEXPR));
 
     lval *x = lval_pop(a, 0);
 
     while (a->count)
-    {
         x = lval_join(e, x, lval_pop(a, 0));
-    }
 
     lval_del(a);
     return x;
