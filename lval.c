@@ -564,30 +564,6 @@ lenv *lenv_new(void)
     return e;
 }
 
-void lval_print_str(lval *v)
-{
-    char *escaped = malloc(strlen(v->data.str) + 1);
-    strcpy(escaped, v->data.str);
-    escaped = mpcf_escape(escaped);
-    printf("\"%s\"", escaped);
-    free(escaped);
-}
-
-void lval_expr_print(lval *v, char open, char close)
-{
-    putchar(open);
-    for (int i = 0; i < v->count; i++)
-    {
-        lval_print(v->cell[i]);
-
-        if (i != (v->count - 1))
-        {
-            putchar(' ');
-        }
-    }
-    putchar(close);
-}
-
 void lval_print(lval *v)
 {
     switch (v->type)
@@ -617,15 +593,41 @@ void lval_print(lval *v)
         }
         break;
     case LVAL_SEXPR:
-        lval_expr_print(v, '(', ')');
+        if (v->count > 0)
+            lval_expr_print(v, '(', ')');
         break;
     case LVAL_QEXPR:
-        lval_expr_print(v, '{', '}');
+        if (v->count > 0)
+            lval_expr_print(v, '{', '}');
         break;
     case LVAL_ERR:
         printf("Error: %s", v->data.err);
         break;
     }
+}
+
+void lval_print_str(lval *v)
+{
+    char *escaped = malloc(strlen(v->data.str) + 1);
+    strcpy(escaped, v->data.str);
+    escaped = mpcf_escape(escaped);
+    printf("\"%s\"", escaped);
+    free(escaped);
+}
+
+void lval_expr_print(lval *v, char open, char close)
+{
+    putchar(open);
+    for (int i = 0; i < v->count; i++)
+    {
+        lval_print(v->cell[i]);
+
+        if (i != (v->count - 1))
+        {
+            putchar(' ');
+        }
+    }
+    putchar(close);
 }
 
 void lval_println(lval *v)
