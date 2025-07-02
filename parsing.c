@@ -86,7 +86,8 @@ int main(int argc, char *argv[])
         if (mpc_parse("<stdin>", input, LispB, &r))
         {
             lval *x = lval_eval(e, lval_read(r.output));
-            lval_println(x);
+            if (x->count > 0)
+                lval_println(x);
             lval_del(x);
             // mpc_ast_print(r.output);
             mpc_ast_delete(r.output);
