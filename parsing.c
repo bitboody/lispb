@@ -76,6 +76,7 @@ int main(int argc, char *argv[])
 
     printf("LispB Interpreter\n");
     printf("Press Ctrl+c to Exit\n\n");
+
     while (1)
     {
         char *input = readline("lispb> ");
@@ -101,44 +102,4 @@ int main(int argc, char *argv[])
     mpc_cleanup(8, Number, Symbol, String, Comment, Sexpr, Qexpr, Expr, LispB);
 
     return 0;
-}
-
-lval *builtin_load(lenv *e, lval *a)
-{
-    LASSERT_NUM("load", a, 1);
-    LASSERT_TYPE("load", a, 0, LVAL_STR);
-
-    mpc_result_t r;
-    if (mpc_parse_contents(a->cell[0]->data.str, LispB, &r))
-    {
-
-        lval *expr = lval_read(r.output);
-        mpc_ast_delete(r.output);
-
-        while (expr->count)
-        {
-            lval *x = lval_eval(e, lval_pop(expr, 0));
-            if (x->type == LVAL_ERR)
-            {
-                lval_println(x);
-            }
-            lval_del(x);
-        }
-
-        lval_del(expr);
-        lval_del(a);
-
-        return lval_sexpr();
-    }
-    else
-    {
-        char *err_msg = mpc_err_string(r.error);
-        mpc_err_delete(r.error);
-
-        lval *err = lval_err("Could not load Library %s", err_msg);
-        free(err_msg);
-        lval_del(a);
-
-        return err;
-    }
 }
