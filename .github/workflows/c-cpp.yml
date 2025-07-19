@@ -13,6 +13,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: Install editline
+      run: sudo apt-get update && sudo apt-get install -y libedit-dev
     - name: make
       run: make
     - name: make check
